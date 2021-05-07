@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using IronPython.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Scripting.Hosting;
 using PythonDotNetTest.Models;
 using System;
 using System.Collections.Generic;
@@ -28,7 +30,7 @@ namespace PythonDotNetTest.Controllers
         public IActionResult Index(string code)
         {
 
-            var result = RunPython(code);
+            var result = RunIronPython(code);
 
             ViewBag.Result = result.Result;
             ViewBag.Error = result.Error;
@@ -66,6 +68,27 @@ namespace PythonDotNetTest.Controllers
             };
 
             return result;
+        }
+
+        public PythonResult RunIronPython(string code)
+        {
+            var engine = Python.CreateEngine(); // Extract Python language engine from their grasp
+            var scope = engine.CreateScope(); // Introduce Python namespace (scope)
+            //var d = new Dictionary<string, object>
+            //{
+            //    { "serviceid", serviceid},
+            //    { "parameter", parameter}
+            //}; // Add some sample parameters. Notice that there is no need in specifically setting the object type, interpreter will do that part for us in the script properly with high probability
+
+            //scope.SetVariable("params", d); // This will be the name of the dictionary in python script, initialized with previously created .NET Dictionary
+            ScriptSource source = engine.CreateScriptSourceFromString(code);
+            object result = source.Execute(scope);
+            //parameter = scope.GetVariable<string>("parameter"); // To get the finally set variable 'parameter' from the python script
+            var pythonResult = new PythonResult
+            {
+                Result = scope.GetVariable("a")
+            };
+            return pythonResult;
         }
     }
 
