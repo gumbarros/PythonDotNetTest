@@ -30,7 +30,7 @@ namespace PythonDotNetTest.Controllers
         public IActionResult Index(string code)
         {
 
-            var result = RunIronPython(code);
+            var result = RunPython(code);
 
             ViewBag.Result = result.Result;
             ViewBag.Error = result.Error;
@@ -47,48 +47,33 @@ namespace PythonDotNetTest.Controllers
 
         public PythonResult RunPython(string code)
         {
-            ProcessStartInfo start = new()
-            {
-                FileName = "python",
-                Arguments = string.Format("-c \"{0}\"", code),
-                UseShellExecute = false,
-                CreateNoWindow = false,
-                Verb = "runas",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
+            try {
+                var engine = Python.CreateEngine(); // Extract Python language engine from their grasp
+                var scope = engine.CreateScope(); // Introduce Python namespace (scope)
 
-            using Process process = Process.Start(start);
-            using StreamReader reader = process.StandardOutput;
+                ICollection<string> searchPaths = engine.GetSearchPaths();
 
-            var result = new PythonResult
-            {
-                Error = process.StandardError.ReadToEnd(), 
-                Result = reader.ReadToEnd()
-            };
+                searchPaths.Add("C:\\Python34\\Lib");
+                engine.SetSearchPaths(searchPaths);
 
-            return result;
-        }
+                scope.ImportModule("random");
 
-        public PythonResult RunIronPython(string code)
-        {
-            var engine = Python.CreateEngine(); // Extract Python language engine from their grasp
-            var scope = engine.CreateScope(); // Introduce Python namespace (scope)
-            //var d = new Dictionary<string, object>
-            //{
-            //    { "serviceid", serviceid},
-            //    { "parameter", parameter}
-            //}; // Add some sample parameters. Notice that there is no need in specifically setting the object type, interpreter will do that part for us in the script properly with high probability
+                ScriptSource source = engine.CreateScriptSourceFromString(code);
 
-            //scope.SetVariable("params", d); // This will be the name of the dictionary in python script, initialized with previously created .NET Dictionary
-            ScriptSource source = engine.CreateScriptSourceFromString(code);
-            object result = source.Execute(scope);
-            //parameter = scope.GetVariable<string>("parameter"); // To get the finally set variable 'parameter' from the python script
-            var pythonResult = new PythonResult
-            {
-                Result = scope.GetVariable("a")
-            };
-            return pythonResult;
+                //parameter = scope.GetVariable<string>("parameter"); // To get the finally set variable 'parameter' from the python script
+
+                //scope.ImportModule("random");
+                var pythonResult = new PythonResult
+                {
+                    Result = source.Execute(scope)
+                };
+                return pythonResult;
+            }
+            catch (Exception e) {
+                return new PythonResult { Error = e.ToString()};
+            }
+
+            
         }
     }
 

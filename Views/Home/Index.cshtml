@@ -22,9 +22,8 @@
             <div id="editor">@ViewBag.Code</div>
         </div>
 
-        <button class="btn btn-primary my-lg-4" onclick="submit()">Enviar</button>
+        <button class="btn btn-primary my-lg-4" onclick="popular()">Enviar</button>
     </form>
-    <button class="btn btn-success" onclick="pan()">Popular</button>
 </div>
 
 <script src="~/js/ace/ace.js"></script>
@@ -35,14 +34,13 @@
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/github");
     editor.session.setMode("ace/mode/python")
-    function pan() {
+    function popular() {
         var editor = ace.edit("editor");
         document.getElementById("code").value = editor.getSession().getValue();
-        console.log(editor.getSession().getValue())
     }
 </script>
 <script>
-    var result = '@ViewBag.Result';
+    var result = '@ViewBag.Result?.ToString()';
     var error = '@ViewBag.Error';
     if (result && result.length > 0)
         Swal.fire(

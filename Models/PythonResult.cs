@@ -7,7 +7,7 @@ namespace PythonDotNetTest.Models
 {
     public class PythonResult
     {
-        public string Result;
+        public object Result;
         public string Error;
     }
 }
