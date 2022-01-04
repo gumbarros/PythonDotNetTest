@@ -6,9 +6,7 @@ using PythonDotNetTest.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace PythonDotNetTest.Controllers
 {
@@ -48,21 +46,18 @@ namespace PythonDotNetTest.Controllers
         public PythonResult RunPython(string code)
         {
             try {
-                var engine = Python.CreateEngine(); // Extract Python language engine from their grasp
-                var scope = engine.CreateScope(); // Introduce Python namespace (scope)
+                var engine = Python.CreateEngine(); 
+                var scope = engine.CreateScope();
 
                 ICollection<string> searchPaths = engine.GetSearchPaths();
 
-                searchPaths.Add("C:\\Python34\\Lib");
+                string user = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string assemblyVersion = Assembly.GetAssembly(typeof(IronPython.Compiler.PythonCompilerOptions)).GetName().Version.ToString();
+                searchPaths.Add(user + $"\\.nuget\\packages\\ironpython.stdlib\\3.4.0-alpha1\\content\\Lib");
                 engine.SetSearchPaths(searchPaths);
-
-                scope.ImportModule("random");
 
                 ScriptSource source = engine.CreateScriptSourceFromString(code);
 
-                //parameter = scope.GetVariable<string>("parameter"); // To get the finally set variable 'parameter' from the python script
-
-                //scope.ImportModule("random");
                 var pythonResult = new PythonResult
                 {
                     Result = source.Execute(scope)
